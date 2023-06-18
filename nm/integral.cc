@@ -42,7 +42,7 @@ struct LeafNodeDataTracker
 ////////////////////////////////////////////////////////////////
 
 template <class Func>
-inline double integrate_gaussian_quadrature(const Func &func, double x0, double x1, int n)
+inline double integrate_gaussian_quadrature(const Func &func, double x0, double x1, const int n)
 {
     double sum {};
     const double scale  = (x1 - x0) * .5;
@@ -60,13 +60,13 @@ inline double integrate_gaussian_quadrature(const Func &func, double x0, double 
     return sum * scale;
 }
 
-double integrate_gaussian_quadrature(double (*fp)(double), double x0, double x1, int n)
+double integrate_gaussian_quadrature(double (*fp)(double), double x0, double x1, const int n)
 {
     SingleVariableFunction func { fp };
     return integrate_gaussian_quadrature(func, x0, x1, n);
 }
 
-double integrate_gaussian_quadrature(double (*fp)(double, void*), void *handle, double x0, double x1, int n)
+double integrate_gaussian_quadrature(double (*fp)(double, void*), void *handle, double x0, double x1, const int n)
 {
     ExtendedSingleVariableFunction func { fp, handle };
     return integrate_gaussian_quadrature(func, x0, x1, n);
