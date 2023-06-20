@@ -36,7 +36,7 @@ static int binary_search_sorted_data(const double *vals, const int n, const doub
     return i;
 }
 
-static double abscisse_interpole_gaussian_quadrature(double (*fp)(double), double x0, double x1, const int n, double st, double tol)
+static double abscissa_interpole_gaussian_quadrature(double (*fp)(double), double x0, double x1, const int n, double st, double tol)
 {
     double xm, xs = x0, ds { 1e10 };
     const int max_num_iter = 1024;
@@ -77,7 +77,7 @@ static double derivative_function(double x, void *ext)
     return I.fp(x);
 }
 
-static void test_abscisse()
+static void test_abscissa()
 {
     auto fp = normal_distribution;
     double x0 = 0;
@@ -114,7 +114,7 @@ static void test_abscisse()
         double x2 = xs[id], x3 = xs[id+1];
         double sg = (s*t - ss[id]); // target integral
 #if 0
-        double xt = abscisse_interpole_gaussian_quadrature(fp, x2, x3, 7, sg, tol);
+        double xt = abscissa_interpole_gaussian_quadrature(fp, x2, x3, 7, sg, tol);
 #else
         integral_function_data I { fp, x2, sg, 7 };
     #if 0
@@ -135,7 +135,7 @@ static void test_abscisse()
 
 int main(int argc, char **argv)
 {
-    test_abscisse();
+    test_abscissa();
 
     return 0;
 }

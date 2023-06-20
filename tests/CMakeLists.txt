@@ -14,8 +14,8 @@ add_executable(${TEST} "test-integral.cc")
 target_link_libraries(${TEST} ${LIBNM})
 add_dependencies(${TEST} ${LIBNM})
 
-# abscisse
-set(TEST "${PROJECT_NAME}-abscisse")
-add_executable(${TEST} "test-abscisse.cc")
+# abscissa
+set(TEST "${PROJECT_NAME}-abscissa")
+add_executable(${TEST} "test-abscissa.cc")
 target_link_libraries(${TEST} ${LIBNM})
 add_dependencies(${TEST} ${LIBNM})
