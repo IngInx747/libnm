@@ -1,6 +1,7 @@
 #include "root.hh"
 #include "error.hh"
 #include "functor.hh"
+//#include <stdio.h>
 
 template <class Func>
 int root_search_bisectional(const Func &func, double x0, double x1, double tol, double &root)
