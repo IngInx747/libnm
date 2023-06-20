@@ -247,7 +247,7 @@ int integrate_adaptive_bisection(double (*fp)(double, void*), void *ext, double 
     return integrate_adaptive_bisection(func, eval, tracker, x0, x1, tol, result);
 }
 
-struct BinaryAdaptiveMemory
+struct AdaptiveBisectionMemory
 {
     inline void track(double val)
     {
@@ -264,7 +264,7 @@ struct BinaryAdaptiveMemory
 
 static void bisection_adaptive_track_callback(double val, void *mem)
 {
-    using T_Tr = BinaryAdaptiveMemory;
+    using T_Tr = AdaptiveBisectionMemory;
     auto &data = (*(static_cast<T_Tr*>(mem)));
     data.track(val);
 }
@@ -273,7 +273,7 @@ int integrate_adaptive_bisection(double (*fp)(double), double x0, double x1, dou
 {
     SingleVariableFunction func { fp };
     G7K15IntegralEvaluation<decltype(func)> eval {};
-    BinaryAdaptiveMemory mem { xs, ss, nd };
+    AdaptiveBisectionMemory mem { xs, ss, nd };
     LeafNodeDataTracker tracker { bisection_adaptive_track_callback, (void*)(&mem) };
     int err = integrate_adaptive_bisection(func, eval, tracker, x0, x1, tol, result);
     nd = mem.n;
@@ -284,7 +284,7 @@ int integrate_adaptive_bisection(double (*fp)(double, void*), void *ext, double 
 {
     ExtendedSingleVariableFunction func { fp, ext };
     G7K15IntegralEvaluation<decltype(func)> eval {};
-    BinaryAdaptiveMemory mem { xs, ss, nd };
+    AdaptiveBisectionMemory mem { xs, ss, nd };
     LeafNodeDataTracker tracker { bisection_adaptive_track_callback, (void*)(&mem) };
     int err = integrate_adaptive_bisection(func, eval, tracker, x0, x1, tol, result);
     nd = mem.n;
