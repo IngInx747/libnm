@@ -1,23 +1,8 @@
 #include "integral.hh"
+#include "error.hh"
+#include "functor.hh"
 #include "quadrature.hh"
 //#include <stdio.h>
-
-////////////////////////////////////////////////////////////////
-/// Function decorator
-////////////////////////////////////////////////////////////////
-
-struct SingleVariableFunction
-{
-    inline double operator()(double x) const { return fp(x); }
-    double (*fp)(double);
-};
-
-struct ExtendedSingleVariableFunction
-{
-    inline double operator()(double x) const { return fp(x, handle); }
-    double (*fp)(double, void*);
-    void *handle;
-};
 
 ////////////////////////////////////////////////////////////////
 /// Stack data tracker
@@ -139,7 +124,7 @@ struct G7K15IntegralEvaluation
 ////////////////////////////////////////////////////////////////
 
 template <class Func, class Eval>
-inline double integrate_binary_adaptive_recursive(const Func &func, const Eval &eval, double x0, double x1, double tol, int level)
+inline double integrate_adaptive_bisection_recursive(const Func &func, const Eval &eval, double x0, double x1, double tol, int level)
 {
     double sum, err;
     sum = eval(func, x0, x1, err);
@@ -150,15 +135,15 @@ inline double integrate_binary_adaptive_recursive(const Func &func, const Eval &
     {
         double xm = (x0 + x1) * .5;
         sum =
-            integrate_binary_adaptive_recursive(func, x0, xm, tol, level + 1)+
-            integrate_binary_adaptive_recursive(func, xm, x1, tol, level + 1);
+            integrate_adaptive_bisection_recursive(func, x0, xm, tol, level + 1)+
+            integrate_adaptive_bisection_recursive(func, xm, x1, tol, level + 1);
     }
 
     return sum;
 }
 
 template <class Func, class Eval, class Tracker>
-inline int integrate_binary_adaptive(const Func &func, const Eval &eval, Tracker &track, double x0, double x1, double tol, double &result)
+inline int integrate_adaptive_bisection(const Func &func, const Eval &eval, Tracker &track, double x0, double x1, double tol, double &result)
 {
     const unsigned long long max_stack_depth = 64; // up to 2^-(n-1) subdivided intervals
     const unsigned long long max_num_iter = 65536; // Warning: cap being too small will cause incomplete result
@@ -241,25 +226,25 @@ inline int integrate_binary_adaptive(const Func &func, const Eval &eval, Tracker
     if (max_top >= max_stack_depth)
         errcode |= STACK_OVERFLOW;
     if (num_iter >= max_num_iter)
-        errcode |= INCOMPLETE_INTEGRAL;
+        errcode |= ITERATION_OVERLIMIT;
 
     return errcode;
 }
 
-int integrate_binary_adaptive(double (*fp)(double), double x0, double x1, double tol, double &result)
+int integrate_adaptive_bisection(double (*fp)(double), double x0, double x1, double tol, double &result)
 {
     DummyTracker tracker {};
     SingleVariableFunction func { fp };
     G7K15IntegralEvaluation<decltype(func)> eval {};
-    return integrate_binary_adaptive(func, eval, tracker, x0, x1, tol, result);
+    return integrate_adaptive_bisection(func, eval, tracker, x0, x1, tol, result);
 }
 
-int integrate_binary_adaptive(double (*fp)(double, void*), void *ext, double x0, double x1, double tol, double &result)
+int integrate_adaptive_bisection(double (*fp)(double, void*), void *ext, double x0, double x1, double tol, double &result)
 {
     DummyTracker tracker {};
     ExtendedSingleVariableFunction func { fp, ext };
     G7K15IntegralEvaluation<decltype(func)> eval {};
-    return integrate_binary_adaptive(func, eval, tracker, x0, x1, tol, result);
+    return integrate_adaptive_bisection(func, eval, tracker, x0, x1, tol, result);
 }
 
 struct BinaryAdaptiveMemory
@@ -277,31 +262,31 @@ struct BinaryAdaptiveMemory
     int cap { 1024 }, n {}, i {};
 };
 
-static void binary_adaptive_track_callback(double val, void *mem)
+static void bisection_adaptive_track_callback(double val, void *mem)
 {
     using T_Tr = BinaryAdaptiveMemory;
     auto &data = (*(static_cast<T_Tr*>(mem)));
     data.track(val);
 }
 
-int integrate_binary_adaptive(double (*fp)(double), double x0, double x1, double tol, double &result, double *xs, double *ss, int &nd)
+int integrate_adaptive_bisection(double (*fp)(double), double x0, double x1, double tol, double &result, double *xs, double *ss, int &nd)
 {
     SingleVariableFunction func { fp };
     G7K15IntegralEvaluation<decltype(func)> eval {};
     BinaryAdaptiveMemory mem { xs, ss, nd };
-    LeafNodeDataTracker tracker { binary_adaptive_track_callback, (void*)(&mem) };
-    int err = integrate_binary_adaptive(func, eval, tracker, x0, x1, tol, result);
+    LeafNodeDataTracker tracker { bisection_adaptive_track_callback, (void*)(&mem) };
+    int err = integrate_adaptive_bisection(func, eval, tracker, x0, x1, tol, result);
     nd = mem.n;
     return err;
 }
 
-int integrate_binary_adaptive(double (*fp)(double, void*), void *ext, double x0, double x1, double tol, double &result, double *xs, double *ss, int &nd)
+int integrate_adaptive_bisection(double (*fp)(double, void*), void *ext, double x0, double x1, double tol, double &result, double *xs, double *ss, int &nd)
 {
     ExtendedSingleVariableFunction func { fp, ext };
     G7K15IntegralEvaluation<decltype(func)> eval {};
     BinaryAdaptiveMemory mem { xs, ss, nd };
-    LeafNodeDataTracker tracker { binary_adaptive_track_callback, (void*)(&mem) };
-    int err = integrate_binary_adaptive(func, eval, tracker, x0, x1, tol, result);
+    LeafNodeDataTracker tracker { bisection_adaptive_track_callback, (void*)(&mem) };
+    int err = integrate_adaptive_bisection(func, eval, tracker, x0, x1, tol, result);
     nd = mem.n;
     return err;
 }

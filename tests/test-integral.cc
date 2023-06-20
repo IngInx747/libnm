@@ -1,4 +1,5 @@
 #include "integral.hh"
+#include "root.hh"
 #include <stdio.h>
 #include <cmath>
 #include <vector>
@@ -81,7 +82,7 @@ static void test_integral()
     for (int i = 1; i <= 20; ++i)
     {
         double eps = std::pow(0.1, i);
-        double d; int err = integrate_binary_adaptive(fp, x0, x1, eps, d);
+        double d; int err = integrate_adaptive_bisection(fp, x0, x1, eps, d);
         printf("ba(%d): %.20lf\n", err, d);
     }
 }
@@ -130,17 +131,39 @@ static double abscisse_interpole_gaussian_quadrature(double (*fp)(double), doubl
     return xm;
 }
 
+struct integral_function_data
+{
+    double (*fp)(double); // integrand
+    double xo; // x offset
+    double yo; // y offset
+    int n;
+};
+
+static double integral_function(double x, void *ext)
+{
+    const auto &I = *(integral_function_data*)(ext);
+    double s = integrate_gaussian_quadrature(I.fp, I.xo, x, I.n);
+    return s - I.yo;
+}
+
+static double derivative_function(double x, void *ext)
+{
+    const auto &I = *(integral_function_data*)(ext);
+    return I.fp(x);
+}
+
 static void test_abscisse()
 {
     auto fp = normal_distribution;
     double x0 = 0;
     double x1 = 1;
+    double t = 0.75;
 
     std::vector<double> xs(4096), ss(4096);
 
     const double tol = 1e-10;
     double s {}; int nd = 4096; // number of intervals
-    int err = integrate_binary_adaptive(fp, x0, x1, tol, s, xs.data(), ss.data(), nd);
+    int err = integrate_adaptive_bisection(fp, x0, x1, tol, s, xs.data(), ss.data(), nd);
     if (err) { printf("error = %d\n", err); return; }
 
     xs[nd] = x1;
@@ -153,7 +176,6 @@ static void test_abscisse()
     }
     printf("number of points: %d\n", nd);
 
-    double t = 0.5;
     int id = binary_search_sorted_data(ss.data(), nd, t*s);
     if (id < 0)
         printf("For t = %lf, x in (-inf, %lf)\n", t, xs[0]);
@@ -166,10 +188,23 @@ static void test_abscisse()
     {
         double x2 = xs[id], x3 = xs[id+1];
         double sg = (s*t - ss[id]); // target integral
+#if 0
         double xt = abscisse_interpole_gaussian_quadrature(fp, x2, x3, 7, sg, tol);
-        printf("For t = %lf, x = %lf, r = %lf\n", t, xt, (xt-x0)/(x1-x0));
-        double st; err = integrate_binary_adaptive(fp, x0, xt, tol, st);
-        printf("For x = %lf, s = %lf, r = %lf\n", xt, st, st/s);
+#else
+        integral_function_data I { fp, x2, sg, 7 };
+    #if 0
+        double xt; err = root_search_bisectional(integral_function, (void*)(&I), x2, x3, tol, xt);
+    #else
+        double xt;// = (x2+x3)*.5;
+        err = root_search_newton_raphson(
+            integral_function, (void*)(&I),
+            derivative_function, (void*)(&I),
+            x2, x3, tol, xt);
+    #endif
+#endif
+        printf("For t = %lf, x = %lf, r(x) = %lf\n", t, xt, (xt-x0)/(x1-x0));
+        double st; err = integrate_adaptive_bisection(fp, x0, xt, tol, st);
+        printf("For x = %lf, s = %lf, r(s) = %lf\n", xt, st, st/s);
     }
 }
 

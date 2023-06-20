@@ -1,5 +1,5 @@
-#ifndef GAUSSIAN_QUADRATURE_HH
-#define GAUSSIAN_QUADRATURE_HH
+#ifndef NM_GAUSSIAN_QUADRATURE_HH
+#define NM_GAUSSIAN_QUADRATURE_HH
 
 double gaussian_quadrature_point (const int n, const int i);
 double gaussian_quadrature_weight(const int n, const int i);

@@ -1,0 +1,11 @@
+#ifndef NM_ERROR_CODE_HH
+#define NM_ERROR_CODE_HH
+
+enum INTERNAL_ERROR_CODE
+{
+    NO_ERROR = 0,
+    STACK_OVERFLOW = 1,
+    ITERATION_OVERLIMIT = 2,
+};
+
+#endif

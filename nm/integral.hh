@@ -1,5 +1,5 @@
-#ifndef NUMERICAL_INTEGRAL_HH
-#define NUMERICAL_INREGARL_HH
+#ifndef NM_INTEGRAL_HH
+#define NM_INREGARL_HH
 
 /// @brief Integral f(x) within [x0, x1]
 /// @param  Function pointer of integrand
@@ -18,13 +18,6 @@ double integrate_gaussian_quadrature(double (*)(double), double, double, int);
 /// @return Integration result
 double integrate_gaussian_quadrature(double (*)(double, void*), void*, double, double, int);
 
-enum INTERNAL_ERROR_CODE
-{
-    NO_ERROR = 0,
-    STACK_OVERFLOW = 1,
-    INCOMPLETE_INTEGRAL = 2,
-};
-
 /// @brief Integral f(x) within [x0, x1] with adaptive subdivided intervals
 /// @param  Function pointer of integrand
 /// @param  Lower bound of intergration interval
@@ -32,7 +25,7 @@ enum INTERNAL_ERROR_CODE
 /// @param  Precision tolerance
 /// @param  Integration result
 /// @return Error code
-int integrate_binary_adaptive(double (*)(double), double, double, double, double&);
+int integrate_adaptive_bisection(double (*)(double), double, double, double, double&);
 
 /// @brief Integral f(x, ...) within [x0, x1] with adaptive subdivided intervals
 /// @param  Function pointer of integrand
@@ -42,10 +35,10 @@ int integrate_binary_adaptive(double (*)(double), double, double, double, double
 /// @param  Precision tolerance
 /// @param  Integration result
 /// @return Error code
-int integrate_binary_adaptive(double (*)(double, void*), void*, double, double, double, double&);
+int integrate_adaptive_bisection(double (*)(double, void*), void*, double, double, double, double&);
 
-int integrate_binary_adaptive(double (*)(double), double, double, double, double&, double*, double*, int&);
+int integrate_adaptive_bisection(double (*)(double), double, double, double, double&, double*, double*, int&);
 
-int integrate_binary_adaptive(double (*)(double, void*), void*, double, double, double, double&, double*, double*, int&);
+int integrate_adaptive_bisection(double (*)(double, void*), void*, double, double, double, double&, double*, double*, int&);
 
 #endif
