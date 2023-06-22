@@ -145,8 +145,8 @@ inline double integrate_adaptive_bisection_recursive(const Func &func, const Eva
 template <class Func, class Eval, class Tracker>
 inline int integrate_adaptive_bisection(const Func &func, const Eval &eval, Tracker &track, double x0, double x1, double tol, double &result)
 {
-    const unsigned long long max_stack_depth = 64; // up to 2^-(n-1) subdivided intervals
-    const unsigned long long max_num_iter = 65536; // Warning: cap being too small will cause incomplete result
+    const long long max_stack_depth = 64; // up to 2^-(n-1) subdivided intervals
+    const long long max_num_iter = 65536; // Warning: cap being too small will cause incomplete result
 
     double xs0[max_stack_depth];
     double xs1[max_stack_depth];
