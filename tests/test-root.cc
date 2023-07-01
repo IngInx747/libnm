@@ -28,19 +28,20 @@ static double dp5(double x)
 
 static void test_root()
 {
-    auto fp = p2;
-    auto dp = dp2;
     double x0 = -1;
-    double x1 = 1;
+    double x1 =  1;
     const double tol = 1e-10;
     int err;
 
+    auto f0 = p2;
+    auto f1 = dp2;
+
 #if 0
-    double xt; err = root_search_bisectional(fp, x0, x1, tol, xt);
+    double xt; err = root_search_bisectional(f0, f1, x1, tol, xt);
 #else
-    double xt; err = root_search_newton_raphson(fp, dp, x0, x1, tol, xt);
+    double xt; err = root_search_newton_raphson(f0, f1, x0, x1, tol, xt);
 #endif
-    printf("root(%d), x = %lf, f(x) = %lf\n", err, xt, fp(xt));
+    printf("err=%d, f(%lf) = %lf\n", err, xt, f0(xt));
 }
 
 int main(int argc, char **argv)

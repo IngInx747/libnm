@@ -65,23 +65,15 @@ static double gauss_sum(double x)
 
 static void test_integral()
 {
-    printf("sqrt(pi): %.20lf\n", std::sqrt(std::acos(-1)) *.5);
-
-    auto fp = normal_distribution;
     double x0 = 0;
     double x1 = 1;
-
-    for (int i = 1; i <= 10; ++i)
-    {
-        double d = integrate_gaussian_quadrature(fp, x0, x1, i);
-        printf("gq: %.10lf\n", d);
-    }
+    auto fp = normal_distribution;
 
     for (int i = 1; i <= 20; ++i)
     {
         double eps = std::pow(0.1, i);
         double d; int err = integrate_adaptive_bisection(fp, x0, x1, eps, d);
-        printf("ba(%d): %.20lf\n", err, d);
+        printf("err=%d, integral = %.20lf\n", err, d);
     }
 }
 

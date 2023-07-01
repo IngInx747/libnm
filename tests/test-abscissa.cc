@@ -36,46 +36,18 @@ static int binary_search_sorted_data(const double *vals, const int n, const doub
     return i;
 }
 
-static double abscissa_interpole_gaussian_quadrature(double (*fp)(double), double x0, double x1, const int n, double st, double tol)
+struct Integral
 {
-    double xm, xs = x0, ds { 1e10 };
-    const int max_num_iter = 1024;
-    int num_iter {};
-
-    for (; ds > tol && num_iter < max_num_iter; ++num_iter)
+    inline double operator()(double x) const
     {
-        xm = (x0 + x1) * .5;
-        double s = integrate_gaussian_quadrature(fp, xs, xm, n);
-        if (s < st)
-            x0 = xm;
-        else
-            x1 = xm;
-        ds = s - st; ds = ds>0 ? ds : -ds;
+        double s = integrate_g7(func, xo, x);
+        return s - yo;
     }
 
-    return xm;
-}
-
-struct integral_function_data
-{
-    double (*fp)(double); // integrand
+    double (*func)(double); // integrand
     double xo; // x offset
     double yo; // y offset
-    int n;
 };
-
-static double integral_function(double x, void *ext)
-{
-    const auto &I = *(integral_function_data*)(ext);
-    double s = integrate_gaussian_quadrature(I.fp, I.xo, x, I.n);
-    return s - I.yo;
-}
-
-static double derivative_function(double x, void *ext)
-{
-    const auto &I = *(integral_function_data*)(ext);
-    return I.fp(x);
-}
 
 static void test_abscissa()
 {
@@ -85,23 +57,20 @@ static void test_abscissa()
     double t = 0.75;
     const double tol = 1e-10;
 
-    std::vector<double> xs(4096), ss(4096);
-    double s {}; int nd = 4096; // number of intervals
+    int nd = 4096; // cap
+    std::vector<double> xs(nd), ys(nd);
 
-    int err = integrate_adaptive_bisection(fp, x0, x1, tol, s, xs.data(), ss.data(), nd);
+    // Integrate and build precision-truct intervals
+    double s; int err = integrate_adaptive_bisection(fp, x0, x1, tol, s, xs.data(), ys.data(), nd);
     if (err) { printf("error = %d\n", err); return; }
-
-    xs[nd] = x1;
-    ss[nd] = s;
-    ++nd; // number of points
 
     for (int i = 0; i < nd; ++i)
     {
-        printf("x = %.10lf, s = %.10lf\n", xs[i], ss[i]);
+        printf("x = %.10lf, s = %.10lf\n", xs[i], ys[i]);
     }
     printf("number of points: %d\n", nd);
 
-    int id = binary_search_sorted_data(ss.data(), nd, t*s);
+    int id = binary_search_sorted_data(ys.data(), nd, t*s);
     if (id < 0)
         printf("For t = %lf, x in (-inf, %lf)\n", t, xs[0]);
     else if (id >= nd)
@@ -112,24 +81,16 @@ static void test_abscissa()
     if (id >= 0 && id < nd)
     {
         double x2 = xs[id], x3 = xs[id+1];
-        double sg = (s*t - ss[id]); // target integral
-#if 0
-        double xt = abscissa_interpole_gaussian_quadrature(fp, x2, x3, 7, sg, tol);
-#else
-        integral_function_data I { fp, x2, sg, 7 };
-    #if 0
-        double xt; err = root_search_bisectional(integral_function, (void*)(&I), x2, x3, tol, xt);
-    #else
-        double xt;// = (x2+x3)*.5;
-        err = root_search_newton_raphson(
-            integral_function, (void*)(&I),
-            derivative_function, (void*)(&I),
-            x2, x3, tol, xt);
-    #endif
-#endif
-        printf("For t = %lf, x = %lf, r(x) = %lf\n", t, xt, (xt-x0)/(x1-x0));
+        double yg = (s*t - ys[id]); // target integral
+        Integral I { fp, x2, yg };
+        #if 0
+        double xt; err = root_search_bisectional(I, x2, x3, tol, xt);
+        #else
+        double xt; err = root_search_newton_raphson(I, fp, x2, x3, tol, xt);
+        #endif
         double st; err = integrate_adaptive_bisection(fp, x0, xt, tol, st);
-        printf("For x = %lf, s = %lf, r(s) = %lf\n", xt, st, st/s);
+        printf("xt = %lf, xt/(x1-x0) = %lf\n", xt, (xt-x0)/(x1-x0));
+        printf("It = %lf, It/I = %lf\n", st, st/s);
     }
 }
 
