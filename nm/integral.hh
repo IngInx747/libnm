@@ -220,6 +220,14 @@ inline int integrate_adaptive_bisection(const Func &func, Tracker &track, double
     return integrate_adaptive_bisection(func, eval, track, x0, x1, tol, result);
 }
 
+/// @brief Integrate the function
+/// @tparam Func the definition of the integrand(function pointer or structure)
+/// @param func the integrand
+/// @param x0 domain lower bound
+/// @param x1 domain upper bound
+/// @param tol precision threshold
+/// @param result value of the integral
+/// @return error code
 template <class Func>
 inline int integrate_adaptive_bisection(const Func &func, double x0, double x1, double tol, double &result)
 {
@@ -227,12 +235,22 @@ inline int integrate_adaptive_bisection(const Func &func, double x0, double x1, 
     return integrate_adaptive_bisection(func, tracker, x0, x1, tol, result);
 }
 
+/// @brief Integrate the function and build quadrature-trustfully intervals
+/// @tparam Func the definition of the integrand(function pointer or structure)
+/// @param func the integrand
+/// @param x0 domain lower bound
+/// @param x1 domain upper bound
+/// @param tol precision threshold
+/// @param xs X coordinates of the integral [x0, ..., x1]
+/// @param ys Y coordinates of the integral [0, ..., I]
+/// @param n In: cap of coordinate array. Out: number of bisectional points
+/// @return error code
 template <class Func>
-inline int integrate_adaptive_bisection(const Func &func, double x0, double x1, double tol, double &result, double *xs, double *ys, int &n)
+inline int integrate_adaptive_bisection(const Func &func, double x0, double x1, double tol, double *xs, double *ys, int &n)
 {
     AdaptiveBisectionTracker tracker { xs, ys, n };
-    int err = integrate_adaptive_bisection(func, tracker, x0, x1, tol, result);
-    n = tracker.n; xs[n] = x1; ys[n] = result; ++n;
+    double s; int err = integrate_adaptive_bisection(func, tracker, x0, x1, tol, s);
+    n = tracker.n; xs[n] = x1; ys[n] = s; ++n;
     return err;
 }
 

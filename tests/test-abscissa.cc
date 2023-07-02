@@ -12,6 +12,11 @@ static double normal_distribution(double x)
     return std::exp(-x*x*kSgm*kSgm) * kSgm / KNrm;
 }
 
+static double oscillation_1(double x)
+{
+    return std::abs(std::sin(1. / x));
+}
+
 static int binary_search_sorted_data(const double *vals, const int n, const double target)
 {
     int i, j, m;
@@ -61,8 +66,9 @@ static void test_abscissa()
     std::vector<double> xs(nd), ys(nd);
 
     // Integrate and build precision-truct intervals
-    double s; int err = integrate_adaptive_bisection(fp, x0, x1, tol, s, xs.data(), ys.data(), nd);
+    int err = integrate_adaptive_bisection(fp, x0, x1, tol, xs.data(), ys.data(), nd);
     if (err) { printf("error = %d\n", err); return; }
+    double s = ys[nd - 1];
 
     for (int i = 0; i < nd; ++i)
     {
