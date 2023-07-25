@@ -3,10 +3,14 @@
 
 #include "error.hh"
 
+#ifndef ROOT_SEARCH_MAX_ITER_NUM
+#define ROOT_SEARCH_MAX_ITER_NUM 64
+#endif
+
 template <class Func>
 inline int root_search_bisectional(const Func &func, double x0, double x1, double tol, double &root)
 {
-    const int max_num_iter = 4096;
+    const int max_num_iter = ROOT_SEARCH_MAX_ITER_NUM;
     double xm, dy = 1e10;
     int num_iter {};
 
@@ -31,9 +35,9 @@ inline int root_search_bisectional(const Func &func, double x0, double x1, doubl
 }
 
 template <class Func0, class Func1>
-inline int root_search_newton_raphson(const Func0 &f0, const Func1 &f1, double x0, double x1, double tol, double &root)
+inline int root_search_newton_raphson(const Func0 &f0, const Func1 &f1, const double x0, const double x1, const double tol, double &root)
 {
-    const int max_num_iter = 4096;
+    const int max_num_iter = ROOT_SEARCH_MAX_ITER_NUM;
     int num_iter {};
 
     // initial guess
